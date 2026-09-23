@@ -13,7 +13,7 @@ from diarize_transcribe.pipeline import ModelError, run_transcription
 from diarize_transcribe.transcript import write_transcript
 
 app = typer.Typer(
-    name="diarize",
+    name="diarize-transcribe",
     help="Transcribe an audio file with speaker diarization.",
     no_args_is_help=True,
     add_completion=False,

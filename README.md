@@ -15,16 +15,16 @@ A local CLI that transcribes audio and labels each transcript turn with a speake
 
 ```sh
 uv sync --extra dev
-uv run diarize recording.wav --output transcript.txt
+uv run diarize-transcribe recording.wav --output transcript.txt
 ```
 
 To run the tagged v0.1 release directly from GitHub with `uvx`, without syncing the project environment:
 
 ```sh
-uvx --from 'git+https://github.com/graelo/diarize-transcribe.git@v0.1' diarize recording.wav --output transcript.txt
+uvx --from 'git+https://github.com/graelo/diarize-transcribe.git@v0.1' diarize-transcribe recording.wav --output transcript.txt
 ```
 
-Use `uv run diarize --help` for options or `uv run diarize --version` to print the package version. The CLI loads `mlx-community/Nemotron-3-Diarization` and `animaslabs/parakeet-tdt-0.6b-v3-mlx-8bit` on the first transcription run. It does not silently substitute another model.
+Use `uv run diarize-transcribe --help` for options or `uv run diarize-transcribe --version` to print the package version. The CLI loads `mlx-community/Nemotron-3-Diarization` and `animaslabs/parakeet-tdt-0.6b-v3-mlx-8bit` on the first transcription run. It does not silently substitute another model.
 
 Output is UTF-8 text, one line per speaker turn with assigned recognized text, for example:
 

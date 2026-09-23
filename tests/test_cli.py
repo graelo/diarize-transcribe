@@ -1,4 +1,5 @@
 from pathlib import Path
+import tomllib
 
 from typer.testing import CliRunner
 
@@ -15,13 +16,26 @@ def test_help_and_version_exit_before_inference(monkeypatch) -> None:
 
     monkeypatch.setattr(cli, "run_transcription", unexpected)
 
-    help_result = runner.invoke(cli.app, ["--help"])
+    help_result = runner.invoke(
+        cli.app, ["--help"], prog_name="diarize-transcribe"
+    )
     version_result = runner.invoke(cli.app, ["--version"])
 
     assert help_result.exit_code == 0
+    assert "Usage: diarize-transcribe" in help_result.stdout
     assert "--output" in help_result.stdout
     assert version_result.exit_code == 0
     assert version_result.stdout.strip() == __version__
+
+
+def test_only_new_console_command_is_registered() -> None:
+    project = tomllib.loads(
+        (Path(__file__).parents[1] / "pyproject.toml").read_text(encoding="utf-8")
+    )
+
+    assert project["project"]["scripts"] == {
+        "diarize-transcribe": "diarize_transcribe.cli:app"
+    }
 
 
 def test_cli_writes_requested_transcript(monkeypatch, tmp_path: Path) -> None:
