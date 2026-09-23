@@ -1,5 +1,5 @@
 [project]
-name = "diarized-transcripts"
+name = "diarize-transcribe"
 version = "0.1.0"
 description = "Local speaker diarization and speech transcription for audio files"
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = [
 dev = ["pytest>=8.3"]
 
 [project.scripts]
-diarize = "diarized_transcripts.cli:app"
+diarize = "diarize_transcribe.cli:app"
 
 [build-system]
 requires = ["hatchling>=1.27"]
@@ -23,7 +23,7 @@ build-backend = "hatchling.build"
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/diarized_transcripts"]
+packages = ["src/diarize_transcribe"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

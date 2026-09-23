@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from diarized_transcripts.transcript import (
+from diarize_transcribe.transcript import (
     SpeakerTurn,
     TextSegment,
     align_text_to_turns,

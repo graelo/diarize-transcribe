@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from diarized_transcripts.transcript import SpeakerTurn, TextSegment
+from diarize_transcribe.transcript import SpeakerTurn, TextSegment
 
 DIARIZATION_MODEL = "mlx-community/Nemotron-3-Diarization"
 ASR_MODEL = "animaslabs/parakeet-tdt-0.6b-v3-mlx-8bit"

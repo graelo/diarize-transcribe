@@ -1,7 +1,7 @@
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
-from diarized_transcripts.models import (
+from diarize_transcribe.models import (
     ASR_MODEL,
     DIARIZATION_MODEL,
     diarize_audio,

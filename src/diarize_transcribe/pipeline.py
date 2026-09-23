@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from diarized_transcripts.models import ModelError, diarize_audio, transcribe_audio
-from diarized_transcripts.transcript import render_lines
+from diarize_transcribe.models import ModelError, diarize_audio, transcribe_audio
+from diarize_transcribe.transcript import render_lines
 
 __all__ = ["ModelError", "run_transcription"]
 

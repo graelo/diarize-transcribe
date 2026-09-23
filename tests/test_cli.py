@@ -2,9 +2,9 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from diarized_transcripts import __version__
-from diarized_transcripts import cli
-from diarized_transcripts.pipeline import ModelError
+from diarize_transcribe import __version__
+from diarize_transcribe import cli
+from diarize_transcribe.pipeline import ModelError
 
 runner = CliRunner()
 

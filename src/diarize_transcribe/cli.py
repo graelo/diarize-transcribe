@@ -8,9 +8,9 @@ from typing import Annotated
 
 import typer
 
-from diarized_transcripts import __version__
-from diarized_transcripts.pipeline import ModelError, run_transcription
-from diarized_transcripts.transcript import write_transcript
+from diarize_transcribe import __version__
+from diarize_transcribe.pipeline import ModelError, run_transcription
+from diarize_transcribe.transcript import write_transcript
 
 app = typer.Typer(
     name="diarize",
