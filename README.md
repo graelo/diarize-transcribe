@@ -29,8 +29,8 @@ Use `uv run diarize --help` for options or `uv run diarize --version` to print t
 Output is UTF-8 text, one line per speaker turn with assigned recognized text, for example:
 
 ```text
-[0.000:1.420] speaker_0 -- Hello there.
-[1.420:2.610] speaker_1 -- Hi.
+[0.000:1.420] speaker-0 -- Hello there.
+[1.420:2.610] speaker-1 -- Hi.
 ```
 
 Times are seconds from the beginning of the recording, rounded to milliseconds. Each timestamped Parakeet text segment is assigned to the diarization turn with the greatest temporal overlap; equal overlaps prefer the turn containing the segment midpoint. Segment-to-speaker attribution can be approximate at speaker changes and during overlapping speech.

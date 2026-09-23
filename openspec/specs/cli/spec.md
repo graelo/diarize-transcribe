@@ -67,3 +67,17 @@ The application SHALL write one UTF-8 text line per diarization speaker turn tha
 
 - **WHEN** inference produces no recognized text segments for any speaker turn
 - **THEN** the application creates the requested output file with no transcript lines
+
+### Requirement: Speaker identifier labels
+
+The application SHALL render each numeric diarization speaker ID `n` in transcript output as `speaker-n`.
+
+#### Scenario: Render speaker ID zero
+
+- **WHEN** a speaker turn has ID `0`
+- **THEN** its transcript line uses `speaker-0`, not `0`
+
+#### Scenario: Render other speaker IDs consistently
+
+- **WHEN** speaker turns have IDs `1` and `2`
+- **THEN** their transcript lines use `speaker-1` and `speaker-2`, respectively

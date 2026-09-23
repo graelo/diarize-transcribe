@@ -59,12 +59,24 @@ def align_text_to_turns(
     return sorted(result, key=lambda item: (item[0].start, item[0].speaker))
 
 
+def _format_speaker_label(speaker: str) -> str:
+    """Return the display label for a numeric diarization speaker ID."""
+    speaker_id = str(speaker)
+    if speaker_id.isdecimal():
+        return f"speaker-{speaker_id}"
+    if speaker_id.startswith("speaker_") and speaker_id[8:].isdecimal():
+        return f"speaker-{speaker_id[8:]}"
+    if speaker_id.startswith("speaker-") and speaker_id[8:].isdecimal():
+        return speaker_id
+    return speaker_id
+
+
 def render_lines(
     turns: list[SpeakerTurn], segments: list[TextSegment]
 ) -> list[str]:
     """Format assigned text as one line per speaker turn."""
     return [
-        f"[{turn.start:.3f}:{turn.end:.3f}] {turn.speaker} -- {text}"
+        f"[{turn.start:.3f}:{turn.end:.3f}] {_format_speaker_label(turn.speaker)} -- {text}"
         for turn, text in align_text_to_turns(turns, segments)
     ]
 
