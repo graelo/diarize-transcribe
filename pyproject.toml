@@ -1,0 +1,31 @@
+[project]
+name = "diarized-transcripts"
+version = "0.1.0"
+description = "Local speaker diarization and speech transcription for audio files"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+  "typer>=0.27.2",
+  "mlx-audio @ git+https://github.com/Blaizzy/mlx-audio.git@9ada37c1e33cfc99a7bdde0a902c0d4a0b913183",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3"]
+
+[project.scripts]
+diarize = "diarized_transcripts.cli:app"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/diarized_transcripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["integration: requires downloading and loading MLX model weights"]
