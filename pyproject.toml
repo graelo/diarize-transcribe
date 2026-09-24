@@ -3,6 +3,8 @@ name = "diarize-transcribe"
 version = "0.1.0"
 description = "Local speaker diarization and speech transcription for audio files"
 readme = "README.md"
+license = "MIT"
+authors = [{ name = "graelo", email = "graelo@graelo.cc" }]
 requires-python = ">=3.14"
 dependencies = [
   "typer>=0.27.2",
