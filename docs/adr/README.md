@@ -1,0 +1,5 @@
+* [1. Record architecture decisions](0001-record-architecture-decisions.md)
+* [2. Run local inference on Apple-Silicon macOS through MLX](0002-run-local-inference-on-apple-silicon-macos-through-mlx.md)
+* [3. Use a fixed Nemotron diarization and Parakeet ASR model pair](0003-use-a-fixed-nemotron-diarization-and-parakeet-asr-model-pair.md)
+* [4. Pin mlx-audio to a tested upstream revision until a compatible release is available](0004-pin-mlx-audio-to-a-tested-upstream-revision-until-a-compatible-release-is-available.md)
+* [5. Attribute ASR segments to diarization turns by temporal overlap](0005-attribute-asr-segments-to-diarization-turns-by-temporal-overlap.md)
