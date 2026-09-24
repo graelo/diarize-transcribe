@@ -1,6 +1,7 @@
 from pathlib import Path
 import tomllib
 
+from click import unstyle
 from typer.testing import CliRunner
 
 from diarize_transcribe import __version__
@@ -21,9 +22,10 @@ def test_help_and_version_exit_before_inference(monkeypatch) -> None:
     )
     version_result = runner.invoke(cli.app, ["--version"])
 
+    help_output = unstyle(help_result.stdout)
     assert help_result.exit_code == 0
-    assert "Usage: diarize-transcribe" in help_result.stdout
-    assert "--output" in help_result.stdout
+    assert "Usage: diarize-transcribe" in help_output
+    assert "--output" in help_output
     assert version_result.exit_code == 0
     assert version_result.stdout.strip() == __version__
 
