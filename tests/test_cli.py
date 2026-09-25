@@ -2,10 +2,12 @@ from pathlib import Path
 import tomllib
 
 from click import unstyle
+import pytest
 from typer.testing import CliRunner
 
 from diarize_transcribe import __version__
 from diarize_transcribe import cli
+from diarize_transcribe.models import DEFAULT_ASR_CHUNK_SECONDS
 from diarize_transcribe.pipeline import ModelError
 
 runner = CliRunner()
@@ -26,6 +28,8 @@ def test_help_and_version_exit_before_inference(monkeypatch) -> None:
     assert help_result.exit_code == 0
     assert "Usage: diarize-transcribe" in help_output
     assert "--output" in help_output
+    assert "--chunk-seconds" in help_output
+    assert str(DEFAULT_ASR_CHUNK_SECONDS) in help_output
     assert version_result.exit_code == 0
     assert version_result.stdout.strip() == __version__
 
@@ -44,14 +48,64 @@ def test_cli_writes_requested_transcript(monkeypatch, tmp_path: Path) -> None:
     audio = tmp_path / "audio.wav"
     audio.write_bytes(b"audio")
     output = tmp_path / "transcript.txt"
+    durations: list[float] = []
+
+    def fake_transcription(path: Path, *, chunk_seconds: float):
+        durations.append(chunk_seconds)
+        return ["[0.000:1.000] speaker_0 -- Hello."]
+
+    monkeypatch.setattr(cli, "run_transcription", fake_transcription)
+
+    result = runner.invoke(
+        cli.app,
+        [str(audio), "--output", str(output), "--chunk-seconds", "75.5"],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert durations == [75.5]
+    assert output.read_text(encoding="utf-8") == "[0.000:1.000] speaker_0 -- Hello.\n"
+
+
+def test_cli_uses_default_chunk_duration(monkeypatch, tmp_path: Path) -> None:
+    audio = tmp_path / "audio.wav"
+    audio.touch()
+    output = tmp_path / "transcript.txt"
+    durations: list[float] = []
+    monkeypatch.setattr(cli, "_supported_platform", lambda: True)
     monkeypatch.setattr(
-        cli, "run_transcription", lambda path: ["[0.000:1.000] speaker_0 -- Hello."]
+        cli,
+        "run_transcription",
+        lambda path, *, chunk_seconds: durations.append(chunk_seconds) or [],
     )
 
     result = runner.invoke(cli.app, [str(audio), "--output", str(output)])
 
     assert result.exit_code == 0, result.output
-    assert output.read_text(encoding="utf-8") == "[0.000:1.000] speaker_0 -- Hello.\n"
+    assert durations == [DEFAULT_ASR_CHUNK_SECONDS]
+
+
+@pytest.mark.parametrize(
+    "chunk_seconds", ["0", "-1", "1", "2", "nan", "inf", "-inf"]
+)
+def test_cli_rejects_invalid_chunk_duration_before_inference(
+    monkeypatch, tmp_path: Path, chunk_seconds: str
+) -> None:
+    audio = tmp_path / "audio.wav"
+    audio.touch()
+    monkeypatch.setattr(
+        cli,
+        "run_transcription",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not run")),
+    )
+
+    result = runner.invoke(
+        cli.app,
+        [str(audio), "--output", str(tmp_path / "out.txt"), "--chunk-seconds", chunk_seconds],
+    )
+
+    assert result.exit_code != 0
+    assert "greater than 2 seconds" in result.output
+    assert "must not run" not in result.output
 
 
 def test_cli_rejects_missing_input_before_model_loading(monkeypatch, tmp_path: Path) -> None:
@@ -75,7 +129,7 @@ def test_cli_reports_model_failure_without_traceback(monkeypatch, tmp_path: Path
     monkeypatch.setattr(
         cli,
         "run_transcription",
-        lambda path: (_ for _ in ()).throw(ModelError("Nemotron load failed")),
+        lambda path, **kwargs: (_ for _ in ()).throw(ModelError("Nemotron load failed")),
     )
 
     result = runner.invoke(cli.app, [str(audio), "--output", str(tmp_path / "out.txt")])
@@ -90,7 +144,9 @@ def test_cli_explains_unsupported_platform(monkeypatch, tmp_path: Path) -> None:
     audio.touch()
     monkeypatch.setattr(cli, "_supported_platform", lambda: False)
     monkeypatch.setattr(
-        cli, "run_transcription", lambda path: (_ for _ in ()).throw(AssertionError())
+        cli,
+        "run_transcription",
+        lambda path, **kwargs: (_ for _ in ()).throw(AssertionError()),
     )
 
     result = runner.invoke(cli.app, [str(audio), "--output", str(tmp_path / "out.txt")])

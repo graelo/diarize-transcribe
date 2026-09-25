@@ -18,6 +18,12 @@ uv sync --extra dev
 uv run diarize-transcribe recording.wav --output transcript.txt
 ```
 
+Parakeet ASR uses 300-second chunks with a fixed 2-second overlap by default. Use `--chunk-seconds` to choose another finite chunk duration greater than 2 seconds:
+
+```sh
+uv run diarize-transcribe recording.wav --output transcript.txt --chunk-seconds 180
+```
+
 To run the tagged v0.1 release directly from GitHub with `uvx`, without syncing the project environment:
 
 ```sh
