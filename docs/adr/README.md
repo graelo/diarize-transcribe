@@ -4,3 +4,4 @@
 * [4. Pin mlx-audio to a tested upstream revision until a compatible release is available](0004-pin-mlx-audio-to-a-tested-upstream-revision-until-a-compatible-release-is-available.md)
 * [5. Attribute ASR segments to diarization turns by temporal overlap](0005-attribute-asr-segments-to-diarization-turns-by-temporal-overlap.md)
 * [6. Use published mlx-audio 0.5.6 for Nemotron support](0006-use-published-mlx-audio-0-5-6-for-nemotron-support.md)
+* [7. Use pull-request labels to gate expensive model integration tests](0007-use-pull-request-labels-to-gate-expensive-model-integration-tests.md)
