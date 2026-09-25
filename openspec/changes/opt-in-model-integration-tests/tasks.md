@@ -9,5 +9,5 @@
 ## 2. Add reusable label-gated CI enforcement
 
 - [x] 2.1 Add a separate GitHub Actions workflow for pull-request open, update, reopen, label, and unlabel events; use the `run-model-tests` label, read-only permissions, no secrets, a stable required-check name, and PR-scoped concurrency, and verify ordinary CI remains unchanged.
-- [ ] 2.2 Configure the repository label and required branch-ruleset status check; verify that an unlabeled or unlabelled PR reports a successful skipped check, a labeled PR runs the model integration test and blocks merge on failure, and label removal clears the gate.
+- [x] 2.2 Configure the repository label and required branch-ruleset status check; verify that an unlabeled or unlabelled PR reports a successful skipped check, a labeled PR runs the model integration test and blocks merge on failure, and label removal clears the gate.
 - [x] 2.3 Run `uv run pytest`, run the opt-in model integration test with model weights enabled on supported Apple Silicon macOS, and validate the OpenSpec change with `openspec validate opt-in-model-integration-tests --strict`.
