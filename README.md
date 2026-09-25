@@ -47,3 +47,11 @@ Times are seconds from the beginning of the recording, rounded to milliseconds. 
 uv sync --extra dev
 uv run pytest
 ```
+
+The default test suite does not download model weights. To also run the opt-in
+end-to-end integration test, which transcribes the bundled two-speaker fixture
+through the real model pipeline and downloads the model weights on first run:
+
+```sh
+RUN_MODEL_SMOKE=1 uv run pytest -m integration
+```
