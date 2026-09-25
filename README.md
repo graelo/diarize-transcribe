@@ -9,7 +9,7 @@ A local CLI that transcribes audio and labels each transcript turn with a speake
 - [uv](https://docs.astral.sh/uv/)
 - Network access on first run to download the model weights from Hugging Face
 
-`mlx-audio` is pinned to upstream commit `9ada37c1e33cfc99a7bdde0a902c0d4a0b913183`. The published `mlx-audio==0.5.5` does not include the Nemotron diarization loader, so do not replace the pinned Git dependency with that PyPI release.
+`mlx-audio==0.5.6` is installed from PyPI. This release includes the Nemotron diarization loader required by the project.
 
 ## Install and run
 
@@ -24,10 +24,10 @@ Parakeet ASR uses 300-second chunks with a fixed 2-second overlap by default. Us
 uv run diarize-transcribe recording.wav --output transcript.txt --chunk-seconds 180
 ```
 
-To run the tagged v0.1 release directly from GitHub with `uvx`, without syncing the project environment:
+To run the tagged v0.1.0 release directly from GitHub with `uvx`, without syncing the project environment:
 
 ```sh
-uvx --from 'git+https://github.com/graelo/diarize-transcribe.git@v0.1' diarize-transcribe recording.wav --output transcript.txt
+uvx --from 'git+https://github.com/graelo/diarize-transcribe.git@v0.1.0' diarize-transcribe recording.wav --output transcript.txt
 ```
 
 Use `uv run diarize-transcribe --help` for options or `uv run diarize-transcribe --version` to print the package version. The CLI loads `mlx-community/Nemotron-3-Diarization` and `animaslabs/parakeet-tdt-0.6b-v3-mlx-8bit` on the first transcription run. It does not silently substitute another model.
@@ -46,4 +46,12 @@ Times are seconds from the beginning of the recording, rounded to milliseconds. 
 ```sh
 uv sync --extra dev
 uv run pytest
+```
+
+The default test suite does not download model weights. To also run the opt-in
+end-to-end integration test, which transcribes the bundled two-speaker fixture
+through the real model pipeline and downloads the model weights on first run:
+
+```sh
+RUN_MODEL_SMOKE=1 uv run pytest -m integration
 ```

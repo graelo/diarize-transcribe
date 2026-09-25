@@ -1,28 +1,6 @@
-# ci Specification
+# Spec Delta
 
-## Purpose
-Automate validation of repository changes so pull requests and updates to the main branch receive consistent test results before release.
-
-## Requirements
-
-### Requirement: CI test workflow
-
-The GitHub Actions workflow SHALL run the project's automated test suite for pull requests and for pushes to `main`, using Python 3.14 on a supported Apple Silicon macOS runner.
-
-#### Scenario: Test a pull request
-
-- **WHEN** a pull request is opened, updated, or reopened
-- **THEN** the workflow runs the project's automated test suite in the supported environment and reports its result
-
-#### Scenario: Test a push to main
-
-- **WHEN** a commit is pushed to `main`
-- **THEN** the workflow runs the project's automated test suite in the supported environment and reports its result
-
-#### Scenario: Tests fail
-
-- **WHEN** one or more tests fail
-- **THEN** the workflow reports a failed check rather than a successful check
+## MODIFIED Requirements
 
 ### Requirement: Keep model downloads out of routine CI
 
@@ -32,6 +10,8 @@ The routine CI test workflow SHALL run the project's automated test suite for pu
 
 - **WHEN** routine CI runs for a pull request or a push to `main`
 - **THEN** it runs the automated test suite without enabling `RUN_MODEL_SMOKE` and without downloading model weights
+
+## ADDED Requirements
 
 ### Requirement: Gate heavyweight model integration tests by pull-request label
 

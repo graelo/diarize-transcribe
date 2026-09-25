@@ -1,0 +1,35 @@
+name: Model integration tests
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  model-tests:
+    name: End-to-end model tests
+    runs-on: macos-latest
+    if: contains(github.event.pull_request.labels.*.name, 'run-model-tests')
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up uv and Python 3.14
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.14"
+
+      - name: Install locked development dependencies
+        run: uv sync --extra dev --locked
+
+      - name: Run opt-in model integration tests
+        run: RUN_MODEL_SMOKE=1 uv run pytest -m integration
