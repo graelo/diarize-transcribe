@@ -2,7 +2,10 @@
 number: 4
 title: Pin mlx-audio to a tested upstream revision until a compatible release is available
 date: 2026-09-24
-status: accepted
+status: superseded
+links:
+- target: 6
+  kind: supersededby
 ---
 
 # Pin mlx-audio to a tested upstream revision until a compatible release is available

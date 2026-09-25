@@ -8,7 +8,7 @@ authors = [{ name = "graelo", email = "graelo@graelo.cc" }]
 requires-python = ">=3.14"
 dependencies = [
   "typer>=0.27.2",
-  "mlx-audio @ git+https://github.com/Blaizzy/mlx-audio.git@9ada37c1e33cfc99a7bdde0a902c0d4a0b913183",
+  "mlx-audio==0.5.6",
 ]
 
 [project.optional-dependencies]

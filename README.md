@@ -9,7 +9,7 @@ A local CLI that transcribes audio and labels each transcript turn with a speake
 - [uv](https://docs.astral.sh/uv/)
 - Network access on first run to download the model weights from Hugging Face
 
-`mlx-audio` is pinned to upstream commit `9ada37c1e33cfc99a7bdde0a902c0d4a0b913183`. The published `mlx-audio==0.5.5` does not include the Nemotron diarization loader, so do not replace the pinned Git dependency with that PyPI release.
+`mlx-audio==0.5.6` is installed from PyPI. This release includes the Nemotron diarization loader required by the project.
 
 ## Install and run
 

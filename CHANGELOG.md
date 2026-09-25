@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chunked Parakeet transcription: speech recognition runs in 300-second chunks with a fixed 2-second overlap, bounding inference memory on long recordings while keeping timestamps relative to the beginning of the recording.
 - `--chunk-seconds` option to select another finite chunk duration greater than 2 seconds.
 
+### Changed
+
+- Use the published `mlx-audio==0.5.6` package instead of pinning an upstream Git revision.
+
 ### Fixed
 
 - Mitigated oversized Metal allocation failures during speech recognition on long recordings by bounding each inference chunk instead of processing the whole file at once.
