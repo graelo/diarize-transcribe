@@ -3,12 +3,15 @@ name: Model integration tests
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: model-tests-${{ github.event.pull_request.number }}
+  group: model-tests-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
