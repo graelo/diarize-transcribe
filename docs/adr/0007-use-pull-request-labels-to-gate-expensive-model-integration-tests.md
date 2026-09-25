@@ -2,7 +2,7 @@
 number: 7
 title: Use pull-request labels to gate expensive model integration tests
 date: 2026-09-26
-status: proposed
+status: accepted
 ---
 
 # Use pull-request labels to gate expensive model integration tests
@@ -11,7 +11,7 @@ status: proposed
 
 Routine CI must remain fast and avoid downloading large model weights, but model-backed integration tests provide confidence that the fixed local inference stack works end to end. Running those tests for every pull request is unnecessarily costly; leaving them manual and detached from merge checks makes failures easy to overlook.
 
-Evidence: [CI specification](../../openspec/specs/ci/spec.md), [current model smoke test](../../tests/test_model_smoke.py), and [proposed OpenSpec design](../../openspec/changes/opt-in-model-integration-tests/design.md).
+Evidence: [CI specification](../../openspec/specs/ci/spec.md), [current model smoke test](../../tests/test_model_smoke.py), and [archived OpenSpec design](../../openspec/changes/archive/2026-09-26-opt-in-model-integration-tests/design.md).
 
 ## Considered Options
 
@@ -21,9 +21,9 @@ Evidence: [CI specification](../../openspec/specs/ci/spec.md), [current model sm
 
 ## Decision Outcome
 
-**Proposed option:** use the reusable `run-model-tests` pull-request label to request heavyweight model integration tests. When the label is present, the test job runs and its required check must pass before merge. When it is absent or removed, the job is skipped with a successful status, so ordinary pull requests are not blocked and do not download model weights.
+Chosen option: **use the reusable `run-model-tests` pull-request label to request heavyweight model integration tests**, because it balances explicit, merge-visible model validation against the cost and latency of downloading and running the models on every pull request.
 
-This balances explicit, merge-visible model validation with the cost and latency of downloading and running the models on every pull request. The implementation will use ordinary `pull_request` events, read-only repository permissions, and no secrets.
+When the label is present, the test job runs and its required check must pass before merge. When it is absent or removed, the job is skipped with a successful status, so ordinary pull requests are not blocked and do not download model weights. The implementation uses ordinary `pull_request` events, read-only repository permissions, and no secrets.
 
 ### Consequences
 

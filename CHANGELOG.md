@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Chunked Parakeet transcription: speech recognition runs in 300-second chunks with a fixed 2-second overlap, bounding inference memory on long recordings while keeping timestamps relative to the beginning of the recording.
 - `--chunk-seconds` option to select another finite chunk duration greater than 2 seconds.
+- Opt-in end-to-end model integration test on a bundled two-speaker fixture (`RUN_MODEL_SMOKE=1 uv run pytest -m integration`).
+- `run-model-tests` pull-request label that runs the model integration test as a required, merge-blocking check, skipped successfully otherwise.
 
 ### Changed
 
