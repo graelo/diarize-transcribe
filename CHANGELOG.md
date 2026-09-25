@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-26
+
 ### Added
 
 - Chunked Parakeet transcription: speech recognition runs in 300-second chunks with a fixed 2-second overlap, bounding inference memory on long recordings while keeping timestamps relative to the beginning of the recording.
@@ -31,5 +33,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Speaker-turn transcripts in UTF-8 text, one line per turn in `[start:end] speaker-N -- text` format, with each recognized segment attributed to the diarization turn with the greatest temporal overlap.
 - Required audio-input and `--output` transcript options, plus `--help` and `--version`.
 
-[Unreleased]: https://github.com/graelo/diarize-transcribe/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/graelo/diarize-transcribe/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/graelo/diarize-transcribe/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/graelo/diarize-transcribe/releases/tag/v0.1.0

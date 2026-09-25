@@ -1,6 +1,6 @@
 [project]
 name = "diarize-transcribe"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local speaker diarization and speech transcription for audio files"
 readme = "README.md"
 license = "MIT"

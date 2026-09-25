@@ -24,10 +24,10 @@ Parakeet ASR uses 300-second chunks with a fixed 2-second overlap by default. Us
 uv run diarize-transcribe recording.wav --output transcript.txt --chunk-seconds 180
 ```
 
-To run the tagged v0.1.0 release directly from GitHub with `uvx`, without syncing the project environment:
+To run the tagged v0.2.0 release directly from GitHub with `uvx`, without syncing the project environment:
 
 ```sh
-uvx --from 'git+https://github.com/graelo/diarize-transcribe.git@v0.1.0' diarize-transcribe recording.wav --output transcript.txt
+uvx --from 'git+https://github.com/graelo/diarize-transcribe.git@v0.2.0' diarize-transcribe recording.wav --output transcript.txt
 ```
 
 Use `uv run diarize-transcribe --help` for options or `uv run diarize-transcribe --version` to print the package version. The CLI loads `mlx-community/Nemotron-3-Diarization` and `animaslabs/parakeet-tdt-0.6b-v3-mlx-8bit` on the first transcription run. It does not silently substitute another model.
