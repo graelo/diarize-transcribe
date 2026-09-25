@@ -26,11 +26,11 @@ Alternatives considered: external audio splitting or custom VAD-boundary splitti
 
 ### Make 300 seconds the shared finite default
 
-Use 300 seconds as the default chunk duration and allow users to override it with `--chunk-seconds`. Define the default once and reuse it across CLI, pipeline, and adapter so help text, direct API calls, and inference cannot drift. Validate the CLI input as finite and greater than zero before model loading. Keep overlap fixed at 2 seconds for a simple initial interface and because it matches the upstream default when chunking.
+Use 300 seconds as the default chunk duration and allow users to override it with `--chunk-seconds`. Define the default once and reuse it across CLI, pipeline, and adapter so help text, direct API calls, and inference cannot drift. Validate the CLI input as finite and greater than 2 seconds before model loading. Keep overlap fixed at 2 seconds for a simple initial interface and because it matches the upstream default when chunking; the pinned API rejects overlap values equal to or greater than chunk duration.
 
 At fixed encoder settings, attention-related memory is approximately quadratic in chunk duration; a five-minute window is roughly 1/144 the duration-squared allocation of a 60-minute window. This is a planning estimate, not a guarantee of peak process memory or a claim about the exact Metal allocation reported in the incident.
 
-Alternatives considered: opt-in chunking would preserve the current failure for users who do not know to enable it; a shorter duration may add overhead without being necessary for the observed case, while a much longer duration raises peak memory. Custom defaults remain overridable.
+Alternatives considered: opt-in chunking would preserve the current failure for users who do not know to enable it; a shorter duration may add overhead without being necessary for the observed case, while a much longer duration raises peak memory. Allowing durations of 2 seconds or less would require dynamically reducing overlap, which conflicts with the fixed-overlap contract; these inputs are rejected instead. Custom defaults remain overridable.
 
 ### Preserve whole-recording timestamps and segment adaptation
 

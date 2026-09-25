@@ -8,6 +8,8 @@ from diarize_transcribe.transcript import SpeakerTurn, TextSegment
 
 DIARIZATION_MODEL = "mlx-community/Nemotron-3-Diarization"
 ASR_MODEL = "animaslabs/parakeet-tdt-0.6b-v3-mlx-8bit"
+DEFAULT_ASR_CHUNK_SECONDS = 300.0
+ASR_CHUNK_OVERLAP_SECONDS = 2.0
 
 
 class ModelError(RuntimeError):
@@ -32,12 +34,18 @@ def diarize_audio(audio: Path) -> list[SpeakerTurn]:
         raise ModelError(f"Nemotron diarization failed ({DIARIZATION_MODEL}): {exc}") from exc
 
 
-def transcribe_audio(audio: Path) -> list[TextSegment]:
+def transcribe_audio(
+    audio: Path, chunk_seconds: float = DEFAULT_ASR_CHUNK_SECONDS
+) -> list[TextSegment]:
     try:
         from mlx_audio.stt import load
 
         model = load(ASR_MODEL)
-        result = model.generate(str(audio))
+        result = model.generate(
+            str(audio),
+            chunk_duration=chunk_seconds,
+            overlap_duration=ASR_CHUNK_OVERLAP_SECONDS,
+        )
         return [
             TextSegment(
                 start=float(sentence.start),

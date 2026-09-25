@@ -7,7 +7,7 @@ Whole-file Parakeet inference can request an oversized Metal allocation on long 
 ## What Changes
 
 - Transcribe audio in bounded chunks by default, using a 300-second chunk duration and 2-second overlap.
-- Add a `--chunk-seconds` option to let users choose a different positive chunk duration.
+- Add a `--chunk-seconds` option to let users choose a different finite chunk duration greater than 2 seconds, matching the fixed overlap constraint.
 - Preserve whole-recording timestamps and the existing transcript output contract; document the setting and its default.
 - Test CLI validation, forwarding of chunk settings through the pipeline and adapter, and timestamp-compatible chunk results without downloading model weights.
 
