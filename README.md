@@ -39,7 +39,7 @@ Output is UTF-8 text, one line per speaker turn with assigned recognized text, f
 [1.420:2.610] speaker-1 -- Hi.
 ```
 
-Times are seconds from the beginning of the recording, rounded to milliseconds. Each timestamped Nemotron ASR token is assigned to the diarization turn with the greatest temporal overlap; equal overlaps prefer the turn containing the token midpoint. This allows text crossing a speaker boundary to be split between turns, but attribution can remain approximate at speaker changes and during overlapping speech.
+Times are seconds from the beginning of the recording, rounded to milliseconds. Each timestamped Nemotron ASR token is assigned to the diarization turn with the greatest temporal overlap; equal overlaps prefer the turn containing the token midpoint. A token outside diarization coverage is assigned to its nearest turn so recognized text is retained. This allows text crossing a speaker boundary to be split between turns, but attribution can remain approximate at speaker changes and during overlapping speech.
 
 ## Development
 

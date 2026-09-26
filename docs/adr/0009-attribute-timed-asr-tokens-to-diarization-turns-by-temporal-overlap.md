@@ -2,10 +2,12 @@
 number: 9
 title: Attribute timed ASR tokens to diarization turns by temporal overlap
 date: 2026-09-26
-status: accepted
+status: superseded
 links:
 - target: 5
   kind: supersedes
+- target: 10
+  kind: supersededby
 ---
 
 # Attribute timed ASR tokens to diarization turns by temporal overlap
@@ -52,3 +54,5 @@ text is ordered by timestamp and concatenated without injected separators.
 - Bad, because the transcript pipeline depends on aligned token output from the
   required ASR checkpoint; an ASR model without tokens would need another
   explicit decision.
+
+Superseded by ADR-0010: [Assign uncovered ASR tokens to the nearest diarization turn](0010-assign-uncovered-asr-tokens-to-the-nearest-diarization-turn.md).

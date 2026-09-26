@@ -23,31 +23,38 @@ class TimedTextToken:
 def align_text_to_turns(
     turns: list[SpeakerTurn], tokens: list[TimedTextToken]
 ) -> list[tuple[SpeakerTurn, str]]:
-    """Assign each timed ASR token to its best-overlapping speaker turn."""
+    """Assign each timed ASR token by overlap, or nearest turn when uncovered."""
     assigned: dict[int, list[tuple[float, str]]] = {i: [] for i in range(len(turns))}
 
     for token in tokens:
-        if not token.text or token.end <= token.start:
+        if not token.text or token.end <= token.start or not turns:
             continue
 
         overlaps = [
             (max(0.0, min(token.end, turn.end) - max(token.start, turn.start)), i)
             for i, turn in enumerate(turns)
         ]
-        greatest = max((overlap for overlap, _ in overlaps), default=0.0)
-        if greatest <= 0:
-            continue
-
-        candidates = [i for overlap, i in overlaps if overlap == greatest]
-        midpoint = (token.start + token.end) / 2
-        winner = next(
-            (
-                i
-                for i in candidates
-                if turns[i].start <= midpoint < turns[i].end
-            ),
-            candidates[0],
-        )
+        greatest = max(overlap for overlap, _ in overlaps)
+        if greatest > 0:
+            candidates = [i for overlap, i in overlaps if overlap == greatest]
+            midpoint = (token.start + token.end) / 2
+            winner = next(
+                (
+                    i
+                    for i in candidates
+                    if turns[i].start <= midpoint < turns[i].end
+                ),
+                candidates[0],
+            )
+        else:
+            winner = min(
+                range(len(turns)),
+                key=lambda i: (
+                    max(turns[i].start - token.end, token.start - turns[i].end, 0.0),
+                    turns[i].start,
+                    i,
+                ),
+            )
         assigned[winner].append((token.start, token.text))
 
     result: list[tuple[SpeakerTurn, str]] = []

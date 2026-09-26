@@ -68,7 +68,7 @@ The application SHALL process long recordings through the ASR model's native str
 
 ### Requirement: Speaker-turn text output
 
-The application SHALL write one UTF-8 text line per diarization speaker turn that has assigned recognized text, formatted as `[<start-seconds>:<stop-seconds>] <speaker-id> -- <transcript>`, with timestamps expressed as seconds from the start of the recording to millisecond precision. It SHALL assign each timed ASR token independently to the diarization turn with the greatest temporal overlap, concatenate tokens assigned to the same turn in timestamp order while preserving model-provided token spacing, and omit turns with no assigned recognized text.
+The application SHALL write one UTF-8 text line per diarization speaker turn that has assigned recognized text, formatted as `[<start-seconds>:<stop-seconds>] <speaker-id> -- <transcript>`, with timestamps expressed as seconds from the start of the recording to millisecond precision. It SHALL assign each timed ASR token independently to the diarization turn with the greatest temporal overlap or, when no turn has positive overlap, to the nearest turn; it SHALL break equal nearest-turn distances toward the earlier turn. It SHALL concatenate tokens assigned to the same turn in timestamp order while preserving model-provided token spacing, and omit turns with no assigned recognized text.
 
 #### Scenario: Write a speaker-turn transcript
 
@@ -79,6 +79,11 @@ The application SHALL write one UTF-8 text line per diarization speaker turn tha
 
 - **WHEN** timed ASR tokens from one recognized sentence overlap more than one diarization speaker turn
 - **THEN** each token is assigned independently to the turn with the greatest temporal overlap, with ties assigned to the turn containing that token's midpoint
+
+#### Scenario: Assign a token in a diarization coverage gap
+
+- **WHEN** a valid timed ASR token has no positive overlap with any diarization turn
+- **THEN** the application assigns it to the temporally nearest turn, choosing the earlier turn when nearest distances are equal
 
 #### Scenario: Preserve token text while assembling a turn
 

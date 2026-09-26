@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Replace Parakeet with `mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit` for timestamped transcription.
 - Use Nemotron ASR's native streaming path for long recordings.
-- Attribute timestamped ASR tokens independently to speaker turns, improving text allocation across speaker boundaries.
+- Attribute timestamped ASR tokens independently to speaker turns, retaining valid tokens in diarization coverage gaps via nearest-turn fallback.
 
 ### Removed
 

@@ -16,3 +16,9 @@
 - [x] 3.1 Update README and the Unreleased changelog to describe token-level speaker attribution and its boundary limitations; verify no documentation describes complete-sentence attribution.
 - [x] 3.2 Update the opt-in model smoke test to exercise timed-token attribution and verify timestamped, speaker-attributed transcript output for the two-speaker fixture.
 - [x] 3.3 Run the default suite, the opt-in model smoke test, strict OpenSpec validation, and ADR health checks; verify all pass.
+
+## 4. Preserve text across diarization coverage gaps
+
+- [x] 4.1 Assign each valid token without positive diarization overlap to its nearest turn, with deterministic earlier-turn tie breaking; verify unit tests cover before, between, and after turn coverage.
+- [x] 4.2 Update the canonical CLI specification, README, changelog, and ADR record for the continuity fallback; verify no current documentation says no-overlap valid tokens are discarded.
+- [x] 4.3 Run the default suite, opt-in model smoke test, strict OpenSpec validation, and ADR health checks; verify all pass.

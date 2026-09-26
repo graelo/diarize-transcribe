@@ -42,15 +42,31 @@ def test_preserves_token_spacing_and_punctuation_within_turn() -> None:
     assert align_text_to_turns(turns, tokens) == [(turns[0], "Hello, world!")]
 
 
-def test_omits_unassigned_empty_and_zero_duration_tokens() -> None:
-    turns = [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(2, 3, "speaker_1")]
+def test_assigns_uncovered_tokens_to_nearest_turns() -> None:
+    turns = [SpeakerTurn(2, 3, "speaker_0"), SpeakerTurn(5, 6, "speaker_1")]
     tokens = [
-        TimedTextToken(1, 2, "in the gap"),
+        TimedTextToken(1.0, 1.4, "before"),
+        TimedTextToken(3.2, 3.4, " left"),
+        TimedTextToken(3.5, 4.5, " tie"),
+        TimedTextToken(4.6, 4.8, " right"),
+        TimedTextToken(6.5, 6.8, " after"),
+    ]
+
+    assert align_text_to_turns(turns, tokens) == [
+        (turns[0], "before left tie"),
+        (turns[1], "right after"),
+    ]
+
+
+def test_omits_empty_zero_duration_and_turnless_tokens() -> None:
+    turns = [SpeakerTurn(0, 1, "speaker_0")]
+    tokens = [
         TimedTextToken(0.2, 0.7, "  "),
         TimedTextToken(0.2, 0.2, "instant"),
     ]
 
     assert align_text_to_turns(turns, tokens) == []
+    assert align_text_to_turns([], [TimedTextToken(1, 2, "turnless")]) == []
     assert render_lines(turns, tokens) == []
 
 

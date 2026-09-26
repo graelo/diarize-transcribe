@@ -7,3 +7,4 @@
 * [7. Use pull-request labels to gate expensive model integration tests](0007-use-pull-request-labels-to-gate-expensive-model-integration-tests.md)
 * [8. Use Nemotron 3.5 ASR for timestamped transcription with automatic language detection](0008-use-nemotron-3-5-asr-for-timestamped-transcription-with-automatic-language-detection.md)
 * [9. Attribute timed ASR tokens to diarization turns by temporal overlap](0009-attribute-timed-asr-tokens-to-diarization-turns-by-temporal-overlap.md)
+* [10. Assign uncovered ASR tokens to the nearest diarization turn](0010-assign-uncovered-asr-tokens-to-the-nearest-diarization-turn.md)
