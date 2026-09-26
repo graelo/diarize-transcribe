@@ -3,6 +3,7 @@ import tomllib
 
 from click import unstyle
 import pytest
+import typer
 from typer.testing import CliRunner
 
 from diarize_transcribe import __version__
@@ -102,17 +103,24 @@ def test_cli_uses_automatic_language_detection_by_default(
     assert requests == [(DEFAULT_ASR_LANGUAGE, 5.0)]
 
 
+@pytest.mark.parametrize("speaker_gap_seconds", [-0.1, float("nan"), float("inf")])
+def test_speaker_gap_callback_rejects_invalid_values(speaker_gap_seconds: float) -> None:
+    with pytest.raises(typer.BadParameter, match="finite and non-negative"):
+        cli._speaker_gap_callback(speaker_gap_seconds)
+
+
 @pytest.mark.parametrize("speaker_gap_seconds", ["-0.1", "nan", "inf", "-inf"])
 def test_cli_rejects_invalid_speaker_gap_before_inference(
     monkeypatch, tmp_path: Path, speaker_gap_seconds: str
 ) -> None:
     audio = tmp_path / "audio.wav"
     audio.touch()
+    requests: list[object] = []
     monkeypatch.setattr(cli, "_supported_platform", lambda: True)
     monkeypatch.setattr(
         cli,
         "run_transcription",
-        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not run")),
+        lambda *args, **kwargs: requests.append((args, kwargs)) or [],
     )
 
     result = runner.invoke(
@@ -126,9 +134,8 @@ def test_cli_rejects_invalid_speaker_gap_before_inference(
         ],
     )
 
-    assert result.exit_code != 0
-    assert "--speaker-gap-seconds" in result.output
-    assert "must not run" not in result.output
+    assert result.exit_code == 2
+    assert requests == []
 
 
 def test_cli_rejects_removed_chunk_option_before_inference(
@@ -136,10 +143,11 @@ def test_cli_rejects_removed_chunk_option_before_inference(
 ) -> None:
     audio = tmp_path / "audio.wav"
     audio.touch()
+    requests: list[object] = []
     monkeypatch.setattr(
         cli,
         "run_transcription",
-        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("must not run")),
+        lambda *args, **kwargs: requests.append((args, kwargs)) or [],
     )
 
     result = runner.invoke(
@@ -147,24 +155,24 @@ def test_cli_rejects_removed_chunk_option_before_inference(
         [str(audio), "--output", str(tmp_path / "out.txt"), "--chunk-seconds", "75.5"],
     )
 
-    assert result.exit_code != 0
-    assert "No such option: --chunk-seconds" in result.output
-    assert "must not run" not in result.output
+    assert result.exit_code == 2
+    assert requests == []
 
 
 def test_cli_rejects_missing_input_before_model_loading(monkeypatch, tmp_path: Path) -> None:
+    requests: list[object] = []
     monkeypatch.setattr(
         cli,
         "run_transcription",
-        lambda path: (_ for _ in ()).throw(AssertionError("must not run")),
+        lambda *args, **kwargs: requests.append((args, kwargs)) or [],
     )
 
     result = runner.invoke(
         cli.app, [str(tmp_path / "missing.wav"), "--output", str(tmp_path / "out.txt")]
     )
 
-    assert result.exit_code != 0
-    assert "does not exist" in result.output
+    assert result.exit_code == 2
+    assert requests == []
 
 
 def test_cli_reports_model_failure_without_traceback(monkeypatch, tmp_path: Path) -> None:
