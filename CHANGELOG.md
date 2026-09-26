@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `--language` option for selecting a supported ASR language prompt, defaulting to automatic language detection.
+
+### Changed
+
+- Replace Parakeet with `mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit` for timestamped transcription.
+- Use Nemotron ASR's native streaming path for long recordings.
+
+### Removed
+
+- `--chunk-seconds`, which controlled Parakeet-specific application-managed chunking.
+
 ## [0.2.0] - 2026-09-26
 
 ### Added

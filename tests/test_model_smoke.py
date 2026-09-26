@@ -17,7 +17,7 @@ LINE_PATTERN = re.compile(r"\[(\d+\.\d{3}):(\d+\.\d{3})\] (speaker-\d+) -- (.+)\
 def test_transcribes_two_speaker_fixture_end_to_end() -> None:
     from diarize_transcribe.pipeline import run_transcription
 
-    lines = run_transcription(FIXTURE)
+    lines = run_transcription(FIXTURE, language="auto")
 
     assert lines
     speakers: set[str] = set()

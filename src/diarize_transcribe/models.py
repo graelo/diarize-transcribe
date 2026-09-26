@@ -7,9 +7,8 @@ from pathlib import Path
 from diarize_transcribe.transcript import SpeakerTurn, TextSegment
 
 DIARIZATION_MODEL = "mlx-community/Nemotron-3-Diarization"
-ASR_MODEL = "animaslabs/parakeet-tdt-0.6b-v3-mlx-8bit"
-DEFAULT_ASR_CHUNK_SECONDS = 300.0
-ASR_CHUNK_OVERLAP_SECONDS = 2.0
+ASR_MODEL = "mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit"
+DEFAULT_ASR_LANGUAGE = "auto"
 
 
 class ModelError(RuntimeError):
@@ -35,17 +34,21 @@ def diarize_audio(audio: Path) -> list[SpeakerTurn]:
 
 
 def transcribe_audio(
-    audio: Path, chunk_seconds: float = DEFAULT_ASR_CHUNK_SECONDS
+    audio: Path, language: str = DEFAULT_ASR_LANGUAGE
 ) -> list[TextSegment]:
     try:
         from mlx_audio.stt import load
 
         model = load(ASR_MODEL)
-        result = model.generate(
-            str(audio),
-            chunk_duration=chunk_seconds,
-            overlap_duration=ASR_CHUNK_OVERLAP_SECONDS,
-        )
+        prompt_dictionary = getattr(model, "prompt_dictionary", {})
+        if language not in prompt_dictionary:
+            supported = ", ".join(sorted(prompt_dictionary)) or "none"
+            raise ValueError(
+                f"unsupported language prompt {language!r}; "
+                f"supported prompts: {supported}"
+            )
+
+        result = model.generate(str(audio), language=language)
         return [
             TextSegment(
                 start=float(sentence.start),
@@ -55,4 +58,4 @@ def transcribe_audio(
             for sentence in result.sentences
         ]
     except Exception as exc:
-        raise ModelError(f"Parakeet transcription failed ({ASR_MODEL}): {exc}") from exc
+        raise ModelError(f"Nemotron transcription failed ({ASR_MODEL}): {exc}") from exc

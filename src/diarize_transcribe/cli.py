@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import platform
 from pathlib import Path
 from typing import Annotated
@@ -10,10 +9,7 @@ from typing import Annotated
 import typer
 
 from diarize_transcribe import __version__
-from diarize_transcribe.models import (
-    ASR_CHUNK_OVERLAP_SECONDS,
-    DEFAULT_ASR_CHUNK_SECONDS,
-)
+from diarize_transcribe.models import DEFAULT_ASR_LANGUAGE
 from diarize_transcribe.pipeline import ModelError, run_transcription
 from diarize_transcribe.transcript import write_transcript
 
@@ -36,17 +32,6 @@ def _supported_platform() -> bool:
     return platform.system() == "Darwin" and platform.machine() in {"arm64", "aarch64"}
 
 
-def _validate_chunk_seconds(
-    ctx: typer.Context, param: typer.CallbackParam, value: float
-) -> float:
-    del ctx, param
-    if not math.isfinite(value) or value <= ASR_CHUNK_OVERLAP_SECONDS:
-        raise typer.BadParameter(
-            f"must be greater than {ASR_CHUNK_OVERLAP_SECONDS:g} seconds"
-        )
-    return value
-
-
 @app.command()
 def run(
     audio: Annotated[
@@ -63,15 +48,14 @@ def run(
         Path,
         typer.Option("--output", "-o", help="Output transcript text file."),
     ],
-    chunk_seconds: Annotated[
-        float,
+    language: Annotated[
+        str,
         typer.Option(
-            "--chunk-seconds",
-            help="ASR chunk duration in seconds (must exceed 2).",
+            "--language",
+            help="ASR language prompt key.",
             show_default=True,
-            callback=_validate_chunk_seconds,
         ),
-    ] = DEFAULT_ASR_CHUNK_SECONDS,
+    ] = DEFAULT_ASR_LANGUAGE,
     version: Annotated[
         bool,
         typer.Option(
@@ -100,7 +84,7 @@ def run(
         raise typer.BadParameter("the output parent directory must already exist")
 
     try:
-        lines = run_transcription(audio, chunk_seconds=chunk_seconds)
+        lines = run_transcription(audio, language=language)
         write_transcript(output, lines)
     except ModelError as exc:
         typer.echo(f"Error: {exc}", err=True)

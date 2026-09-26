@@ -2,12 +2,11 @@ from pathlib import Path
 import tomllib
 
 from click import unstyle
-import pytest
 from typer.testing import CliRunner
 
 from diarize_transcribe import __version__
 from diarize_transcribe import cli
-from diarize_transcribe.models import DEFAULT_ASR_CHUNK_SECONDS
+from diarize_transcribe.models import DEFAULT_ASR_LANGUAGE
 from diarize_transcribe.pipeline import ModelError
 
 runner = CliRunner()
@@ -28,8 +27,9 @@ def test_help_and_version_exit_before_inference(monkeypatch) -> None:
     assert help_result.exit_code == 0
     assert "Usage: diarize-transcribe" in help_output
     assert "--output" in help_output
-    assert "--chunk-seconds" in help_output
-    assert str(DEFAULT_ASR_CHUNK_SECONDS) in help_output
+    assert "--language" in help_output
+    assert DEFAULT_ASR_LANGUAGE in help_output
+    assert "--chunk-seconds" not in help_output
     assert version_result.exit_code == 0
     assert version_result.stdout.strip() == __version__
 
@@ -48,47 +48,47 @@ def test_cli_writes_requested_transcript(monkeypatch, tmp_path: Path) -> None:
     audio = tmp_path / "audio.wav"
     audio.write_bytes(b"audio")
     output = tmp_path / "transcript.txt"
-    durations: list[float] = []
+    languages: list[str] = []
+    monkeypatch.setattr(cli, "_supported_platform", lambda: True)
 
-    def fake_transcription(path: Path, *, chunk_seconds: float):
-        durations.append(chunk_seconds)
+    def fake_transcription(path: Path, *, language: str):
+        languages.append(language)
         return ["[0.000:1.000] speaker_0 -- Hello."]
 
     monkeypatch.setattr(cli, "run_transcription", fake_transcription)
 
     result = runner.invoke(
         cli.app,
-        [str(audio), "--output", str(output), "--chunk-seconds", "75.5"],
+        [str(audio), "--output", str(output), "--language", "test-language"],
     )
 
     assert result.exit_code == 0, result.output
-    assert durations == [75.5]
+    assert languages == ["test-language"]
     assert output.read_text(encoding="utf-8") == "[0.000:1.000] speaker_0 -- Hello.\n"
 
 
-def test_cli_uses_default_chunk_duration(monkeypatch, tmp_path: Path) -> None:
+def test_cli_uses_automatic_language_detection_by_default(
+    monkeypatch, tmp_path: Path
+) -> None:
     audio = tmp_path / "audio.wav"
     audio.touch()
     output = tmp_path / "transcript.txt"
-    durations: list[float] = []
+    languages: list[str] = []
     monkeypatch.setattr(cli, "_supported_platform", lambda: True)
     monkeypatch.setattr(
         cli,
         "run_transcription",
-        lambda path, *, chunk_seconds: durations.append(chunk_seconds) or [],
+        lambda path, *, language: languages.append(language) or [],
     )
 
     result = runner.invoke(cli.app, [str(audio), "--output", str(output)])
 
     assert result.exit_code == 0, result.output
-    assert durations == [DEFAULT_ASR_CHUNK_SECONDS]
+    assert languages == [DEFAULT_ASR_LANGUAGE]
 
 
-@pytest.mark.parametrize(
-    "chunk_seconds", ["0", "-1", "1", "2", "nan", "inf", "-inf"]
-)
-def test_cli_rejects_invalid_chunk_duration_before_inference(
-    monkeypatch, tmp_path: Path, chunk_seconds: str
+def test_cli_rejects_removed_chunk_option_before_inference(
+    monkeypatch, tmp_path: Path
 ) -> None:
     audio = tmp_path / "audio.wav"
     audio.touch()
@@ -100,11 +100,11 @@ def test_cli_rejects_invalid_chunk_duration_before_inference(
 
     result = runner.invoke(
         cli.app,
-        [str(audio), "--output", str(tmp_path / "out.txt"), "--chunk-seconds", chunk_seconds],
+        [str(audio), "--output", str(tmp_path / "out.txt"), "--chunk-seconds", "75.5"],
     )
 
     assert result.exit_code != 0
-    assert "greater than 2 seconds" in result.output
+    assert "No such option: --chunk-seconds" in result.output
     assert "must not run" not in result.output
 
 
@@ -126,6 +126,7 @@ def test_cli_rejects_missing_input_before_model_loading(monkeypatch, tmp_path: P
 def test_cli_reports_model_failure_without_traceback(monkeypatch, tmp_path: Path) -> None:
     audio = tmp_path / "audio.wav"
     audio.touch()
+    monkeypatch.setattr(cli, "_supported_platform", lambda: True)
     monkeypatch.setattr(
         cli,
         "run_transcription",
