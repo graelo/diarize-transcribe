@@ -2,7 +2,10 @@
 number: 5
 title: Attribute ASR segments to diarization turns by temporal overlap
 date: 2026-09-24
-status: accepted
+status: superseded
+links:
+- target: 9
+  kind: supersededby
 ---
 
 # Attribute ASR segments to diarization turns by temporal overlap
@@ -45,3 +48,5 @@ speaker-ID representation.
 overlapping speech.
 - Bad, because a more precise alignment strategy requires an explicit future
 decision and corresponding output-contract review.
+
+Superseded by ADR-0009: [Attribute timed ASR tokens to diarization turns by temporal overlap](0009-attribute-timed-asr-tokens-to-diarization-turns-by-temporal-overlap.md).

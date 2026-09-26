@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from pathlib import Path
 
 
@@ -14,48 +15,89 @@ class SpeakerTurn:
 
 
 @dataclass(frozen=True, slots=True)
-class TextSegment:
+class TimedTextToken:
     start: float
     end: float
     text: str
 
 
+DEFAULT_SPEAKER_GAP_SECONDS = 5.0
+
+
+def validate_speaker_gap_seconds(speaker_gap_seconds: float) -> float:
+    """Return a finite non-negative speaker-gap threshold."""
+    if not math.isfinite(speaker_gap_seconds) or speaker_gap_seconds < 0:
+        raise ValueError("speaker_gap_seconds must be finite and non-negative")
+    return speaker_gap_seconds
+
+
+def coalesce_speaker_turns(
+    turns: list[SpeakerTurn], speaker_gap_seconds: float
+) -> list[SpeakerTurn]:
+    """Merge chronological same-speaker turns separated by a short gap."""
+    validate_speaker_gap_seconds(speaker_gap_seconds)
+
+    coalesced: list[SpeakerTurn] = []
+    for turn in sorted(turns, key=lambda turn: turn.start):
+        if (
+            coalesced
+            and coalesced[-1].speaker == turn.speaker
+            and turn.start - coalesced[-1].end < speaker_gap_seconds
+        ):
+            previous = coalesced[-1]
+            coalesced[-1] = SpeakerTurn(
+                start=previous.start,
+                end=max(previous.end, turn.end),
+                speaker=previous.speaker,
+            )
+        else:
+            coalesced.append(turn)
+    return coalesced
+
+
 def align_text_to_turns(
-    turns: list[SpeakerTurn], segments: list[TextSegment]
+    turns: list[SpeakerTurn], tokens: list[TimedTextToken]
 ) -> list[tuple[SpeakerTurn, str]]:
-    """Assign each timestamped text segment to its best-overlapping speaker turn."""
+    """Assign each timed ASR token by overlap, or nearest turn when uncovered."""
     assigned: dict[int, list[tuple[float, str]]] = {i: [] for i in range(len(turns))}
 
-    for segment in segments:
-        text = segment.text.strip()
-        if not text or segment.end <= segment.start:
+    for token in tokens:
+        if not token.text or token.end <= token.start or not turns:
             continue
 
         overlaps = [
-            (max(0.0, min(segment.end, turn.end) - max(segment.start, turn.start)), i)
+            (max(0.0, min(token.end, turn.end) - max(token.start, turn.start)), i)
             for i, turn in enumerate(turns)
         ]
-        greatest = max((overlap for overlap, _ in overlaps), default=0.0)
-        if greatest <= 0:
-            continue
-
-        candidates = [i for overlap, i in overlaps if overlap == greatest]
-        midpoint = (segment.start + segment.end) / 2
-        winner = next(
-            (
-                i
-                for i in candidates
-                if turns[i].start <= midpoint < turns[i].end
-            ),
-            candidates[0],
-        )
-        assigned[winner].append((segment.start, text))
+        greatest = max(overlap for overlap, _ in overlaps)
+        if greatest > 0:
+            candidates = [i for overlap, i in overlaps if overlap == greatest]
+            midpoint = (token.start + token.end) / 2
+            winner = next(
+                (
+                    i
+                    for i in candidates
+                    if turns[i].start <= midpoint < turns[i].end
+                ),
+                candidates[0],
+            )
+        else:
+            winner = min(
+                range(len(turns)),
+                key=lambda i: (
+                    max(turns[i].start - token.end, token.start - turns[i].end, 0.0),
+                    turns[i].start,
+                    i,
+                ),
+            )
+        assigned[winner].append((token.start, token.text))
 
     result: list[tuple[SpeakerTurn, str]] = []
     for i, turn in enumerate(turns):
         chunks = sorted(assigned[i], key=lambda item: item[0])
-        if chunks:
-            result.append((turn, " ".join(text for _, text in chunks)))
+        text = "".join(text for _, text in chunks).strip()
+        if text:
+            result.append((turn, text))
     return sorted(result, key=lambda item: (item[0].start, item[0].speaker))
 
 
@@ -72,12 +114,15 @@ def _format_speaker_label(speaker: str) -> str:
 
 
 def render_lines(
-    turns: list[SpeakerTurn], segments: list[TextSegment]
+    turns: list[SpeakerTurn],
+    tokens: list[TimedTextToken],
+    speaker_gap_seconds: float = DEFAULT_SPEAKER_GAP_SECONDS,
 ) -> list[str]:
-    """Format assigned text as one line per speaker turn."""
+    """Format assigned text as one line per coalesced speaker turn."""
+    coalesced_turns = coalesce_speaker_turns(turns, speaker_gap_seconds)
     return [
         f"[{turn.start:.3f}:{turn.end:.3f}] {_format_speaker_label(turn.speaker)} -- {text}"
-        for turn, text in align_text_to_turns(turns, segments)
+        for turn, text in align_text_to_turns(coalesced_turns, tokens)
     ]
 
 

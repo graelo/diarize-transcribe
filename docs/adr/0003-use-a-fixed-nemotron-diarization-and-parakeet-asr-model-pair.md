@@ -2,7 +2,10 @@
 number: 3
 title: Use a fixed Nemotron diarization and Parakeet ASR model pair
 date: 2026-09-24
-status: accepted
+status: superseded
+links:
+- target: 8
+  kind: supersededby
 ---
 
 # Use a fixed Nemotron diarization and Parakeet ASR model pair
@@ -41,3 +44,5 @@ Model adapters isolate the upstream APIs from the rest of the application.
   model weights.
 - Bad, because adopting or replacing a model pair requires an explicit future
   decision.
+
+Superseded by ADR-0008: [Use Nemotron 3.5 ASR for timestamped transcription with automatic language detection](0008-use-nemotron-3-5-asr-for-timestamped-transcription-with-automatic-language-detection.md).

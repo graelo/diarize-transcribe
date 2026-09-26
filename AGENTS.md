@@ -40,6 +40,14 @@ duplicating its rationale.
 Do not alter archived OpenSpec artifacts to add ADR links. New ADRs may link
 back to archived artifacts as historical evidence.
 
+## Change Workflow
+
+- Keep planning and implementation separate. Once OpenSpec planning artifacts
+  are ready, recommend committing the planning changes and compacting the
+  conversation, then stop. Wait for explicit user direction before creating the
+  commit; after the commit, wait for separate explicit direction before starting
+  implementation.
+
 ## ADR Lifecycle
 
 Use `Proposed` for unsettled new decisions. For a historical implemented
@@ -55,12 +63,12 @@ Run ADR commands from the repository root.
 - Before proposing an ADR, search existing records:
   `adrs search <terms>`
 - After the user approves a new decision record, create its skeleton without
-  opening an interactive editor:
-  `adrs new --no-edit --status Proposed "<title>"`
+  opening an interactive editor in the configured NextGen format:
+  `adrs --ng new --no-edit --status Proposed "<title>"`
 - For a confirmed historical decision, use `Accepted` and identify it as
   recorded retrospectively.
 - To replace an accepted decision, create a new record with
-  `adrs new --no-edit --status Accepted --supersedes <number> "<title>"`.
+  `adrs --ng new --no-edit --status Accepted --supersedes <number> "<title>"`.
   Do not rewrite the prior decision's rationale.
 - After any ADR change, run:
   `adrs doctor`

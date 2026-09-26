@@ -1,10 +1,6 @@
-# cli Specification
+# Spec Delta
 
-## Purpose
-
-Provide a simple local command-line tool that diarizes an audio recording, transcribes its speech, and writes the recognized text with speaker-turn timestamps to a plain text file.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Command-line interface
 
@@ -37,42 +33,6 @@ The package SHALL provide a command-line application installed as the `diarize-t
 #### Scenario: Reject an unsupported language prompt
 - **WHEN** a user supplies a `--language` value that is not supported by the configured ASR checkpoint
 - **THEN** the command reports an actionable parameter error and does not silently fall back to another language prompt
-
-### Requirement: Local diarization and transcription
-
-The application SHALL run Nemotron 3 Diarization from `mlx-community/Nemotron-3-Diarization` and speech recognition from `mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit` on the supplied recording, and SHALL NOT silently substitute a different model. The application SHALL pass the selected language prompt to speech recognition, defaulting to `auto` when the user does not specify one.
-
-#### Scenario: Process a recording
-- **WHEN** the requested models are available and the input contains speech
-- **THEN** the application obtains timestamped speaker activity and timestamped recognized text segments for producing speaker-attributed transcript turns
-
-#### Scenario: Process a recording using automatic language detection
-- **WHEN** the requested models are available and the input contains speech and no `--language` value is supplied
-- **THEN** the application obtains timestamped speaker activity and timestamped recognized text using the ASR model's `auto` prompt for producing speaker-attributed transcript turns
-
-#### Scenario: Process a recording with an explicit language prompt
-- **WHEN** the requested models are available and the user supplies a supported `--language` prompt key
-- **THEN** the application passes that exact key to speech recognition and obtains timestamped recognized text for producing speaker-attributed transcript turns
-
-#### Scenario: Required model is unavailable or incompatible
-- **WHEN** either required model cannot be downloaded, loaded, or run
-- **THEN** the application reports which model failed and exits unsuccessfully without silently using another model
-
-#### Scenario: Unsupported runtime platform
-- **WHEN** the application is run outside a supported Apple Silicon macOS MLX environment
-- **THEN** it reports that the local MLX runtime is unsupported and exits with a clear error
-
-### Requirement: Native streaming transcription
-
-The application SHALL process long recordings through the ASR model's native streaming transcription path without application-managed fixed-size chunks or overlap. Recognized sentence timestamps SHALL remain relative to the beginning of the original recording so existing speaker attribution and transcript formatting continue to apply.
-
-#### Scenario: Transcribe a long recording
-- **WHEN** a user supplies a recording longer than the model's native streaming window
-- **THEN** the application processes it through native streaming without requiring a chunk-duration option or adding application-managed overlap
-
-#### Scenario: Preserve whole-recording sentence timestamps
-- **WHEN** speech recognition returns sentence timestamps while processing a recording through multiple native streaming windows
-- **THEN** each sentence timestamp identifies its position from the beginning of the original recording and remains compatible with speaker attribution and transcript output
 
 ### Requirement: Speaker-turn text output
 
@@ -122,17 +82,3 @@ The application SHALL coalesce consecutive diarization turns with the same speak
 
 - **WHEN** inference produces no recognized tokens for any speaker turn
 - **THEN** the application creates the requested output file with no transcript lines
-
-### Requirement: Speaker identifier labels
-
-The application SHALL render each numeric diarization speaker ID `n` in transcript output as `speaker-n`.
-
-#### Scenario: Render speaker ID zero
-
-- **WHEN** a speaker turn has ID `0`
-- **THEN** its transcript line uses `speaker-0`, not `0`
-
-#### Scenario: Render other speaker IDs consistently
-
-- **WHEN** speaker turns have IDs `1` and `2`
-- **THEN** their transcript lines use `speaker-1` and `speaker-2`, respectively
