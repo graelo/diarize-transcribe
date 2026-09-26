@@ -68,17 +68,22 @@ The application SHALL process long recordings through the ASR model's native str
 
 ### Requirement: Speaker-turn text output
 
-The application SHALL write one UTF-8 text line per diarization speaker turn that has assigned recognized text, formatted as `[<start-seconds>:<stop-seconds>] <speaker-id> -- <transcript>`, with timestamps expressed as seconds from the start of the recording to millisecond precision. Speaker turns with no assigned recognized text SHALL be omitted.
+The application SHALL write one UTF-8 text line per diarization speaker turn that has assigned recognized text, formatted as `[<start-seconds>:<stop-seconds>] <speaker-id> -- <transcript>`, with timestamps expressed as seconds from the start of the recording to millisecond precision. It SHALL assign each timed ASR token independently to the diarization turn with the greatest temporal overlap, concatenate tokens assigned to the same turn in timestamp order while preserving model-provided token spacing, and omit turns with no assigned recognized text.
 
 #### Scenario: Write a speaker-turn transcript
 
-- **WHEN** inference produces speaker turns and recognized text
+- **WHEN** inference produces speaker turns and timed recognized tokens
 - **THEN** the output file contains one formatted line for each turn with that turn's start and stop times, speaker ID, and assigned transcript text
 
 #### Scenario: Attribute recognized text across speaker boundaries
 
-- **WHEN** a recognized text segment overlaps more than one diarization speaker turn
-- **THEN** the complete text segment is assigned to the turn with the greatest temporal overlap, with ties assigned to the turn containing the segment midpoint
+- **WHEN** timed ASR tokens from one recognized sentence overlap more than one diarization speaker turn
+- **THEN** each token is assigned independently to the turn with the greatest temporal overlap, with ties assigned to the turn containing that token's midpoint
+
+#### Scenario: Preserve token text while assembling a turn
+
+- **WHEN** multiple tokens assigned to one turn include model-provided leading spaces or punctuation
+- **THEN** the turn transcript concatenates their text in timestamp order without inserting or removing internal whitespace
 
 #### Scenario: Handle overlapping speakers
 
@@ -87,7 +92,7 @@ The application SHALL write one UTF-8 text line per diarization speaker turn tha
 
 #### Scenario: No recognized speech
 
-- **WHEN** inference produces no recognized text segments for any speaker turn
+- **WHEN** inference produces no recognized tokens for any speaker turn
 - **THEN** the application creates the requested output file with no transcript lines
 
 ### Requirement: Speaker identifier labels

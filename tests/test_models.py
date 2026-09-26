@@ -11,7 +11,7 @@ from diarize_transcribe.models import (
     diarize_audio,
     transcribe_audio,
 )
-from diarize_transcribe.transcript import TextSegment
+from diarize_transcribe.transcript import TimedTextToken
 
 
 def test_model_adapters_use_required_ids_and_normalize_outputs(monkeypatch, tmp_path: Path) -> None:
@@ -32,7 +32,19 @@ def test_model_adapters_use_required_ids_and_normalize_outputs(monkeypatch, tmp_
         def generate(self, audio: str, *, language: str):
             calls.append(("transcribe", audio, language))
             return SimpleNamespace(
-                sentences=[SimpleNamespace(start=300.2, end=301.2, text="Hello.")]
+                sentences=[
+                    SimpleNamespace(
+                        tokens=[
+                            SimpleNamespace(start=301.0, end=301.2, text=" later"),
+                        ]
+                    ),
+                    SimpleNamespace(
+                        tokens=[
+                            SimpleNamespace(start=300.2, end=300.7, text="Hello"),
+                            SimpleNamespace(start=300.7, end=300.9, text="."),
+                        ]
+                    ),
+                ]
             )
 
     diar_module.load = lambda model_id, strict: (  # type: ignore[attr-defined]
@@ -45,11 +57,14 @@ def test_model_adapters_use_required_ids_and_normalize_outputs(monkeypatch, tmp_
     monkeypatch.setitem(__import__("sys").modules, "mlx_audio.stt", asr_module)
 
     audio = tmp_path / "sample.wav"
-    assert diarize_audio(audio)[0].speaker == "speaker_0"
-    assert transcribe_audio(audio) == [TextSegment(300.2, 301.2, "Hello.")]
-    assert transcribe_audio(audio, language="test-language") == [
-        TextSegment(300.2, 301.2, "Hello.")
+    expected_tokens = [
+        TimedTextToken(300.2, 300.7, "Hello"),
+        TimedTextToken(300.7, 300.9, "."),
+        TimedTextToken(301.0, 301.2, " later"),
     ]
+    assert diarize_audio(audio)[0].speaker == "speaker_0"
+    assert transcribe_audio(audio) == expected_tokens
+    assert transcribe_audio(audio, language="test-language") == expected_tokens
     assert ("load_diar", DIARIZATION_MODEL) in calls
     assert ("load_asr", ASR_MODEL) in calls
     assert calls.count(("diarize", str(audio))) == 1

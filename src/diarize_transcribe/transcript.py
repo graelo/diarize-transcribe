@@ -14,25 +14,24 @@ class SpeakerTurn:
 
 
 @dataclass(frozen=True, slots=True)
-class TextSegment:
+class TimedTextToken:
     start: float
     end: float
     text: str
 
 
 def align_text_to_turns(
-    turns: list[SpeakerTurn], segments: list[TextSegment]
+    turns: list[SpeakerTurn], tokens: list[TimedTextToken]
 ) -> list[tuple[SpeakerTurn, str]]:
-    """Assign each timestamped text segment to its best-overlapping speaker turn."""
+    """Assign each timed ASR token to its best-overlapping speaker turn."""
     assigned: dict[int, list[tuple[float, str]]] = {i: [] for i in range(len(turns))}
 
-    for segment in segments:
-        text = segment.text.strip()
-        if not text or segment.end <= segment.start:
+    for token in tokens:
+        if not token.text or token.end <= token.start:
             continue
 
         overlaps = [
-            (max(0.0, min(segment.end, turn.end) - max(segment.start, turn.start)), i)
+            (max(0.0, min(token.end, turn.end) - max(token.start, turn.start)), i)
             for i, turn in enumerate(turns)
         ]
         greatest = max((overlap for overlap, _ in overlaps), default=0.0)
@@ -40,7 +39,7 @@ def align_text_to_turns(
             continue
 
         candidates = [i for overlap, i in overlaps if overlap == greatest]
-        midpoint = (segment.start + segment.end) / 2
+        midpoint = (token.start + token.end) / 2
         winner = next(
             (
                 i
@@ -49,13 +48,14 @@ def align_text_to_turns(
             ),
             candidates[0],
         )
-        assigned[winner].append((segment.start, text))
+        assigned[winner].append((token.start, token.text))
 
     result: list[tuple[SpeakerTurn, str]] = []
     for i, turn in enumerate(turns):
         chunks = sorted(assigned[i], key=lambda item: item[0])
-        if chunks:
-            result.append((turn, " ".join(text for _, text in chunks)))
+        text = "".join(text for _, text in chunks).strip()
+        if text:
+            result.append((turn, text))
     return sorted(result, key=lambda item: (item[0].start, item[0].speaker))
 
 
@@ -72,12 +72,12 @@ def _format_speaker_label(speaker: str) -> str:
 
 
 def render_lines(
-    turns: list[SpeakerTurn], segments: list[TextSegment]
+    turns: list[SpeakerTurn], tokens: list[TimedTextToken]
 ) -> list[str]:
     """Format assigned text as one line per speaker turn."""
     return [
         f"[{turn.start:.3f}:{turn.end:.3f}] {_format_speaker_label(turn.speaker)} -- {text}"
-        for turn, text in align_text_to_turns(turns, segments)
+        for turn, text in align_text_to_turns(turns, tokens)
     ]
 
 

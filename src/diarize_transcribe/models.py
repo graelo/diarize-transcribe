@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from diarize_transcribe.transcript import SpeakerTurn, TextSegment
+from diarize_transcribe.transcript import SpeakerTurn, TimedTextToken
 
 DIARIZATION_MODEL = "mlx-community/Nemotron-3-Diarization"
 ASR_MODEL = "mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit"
@@ -35,7 +35,7 @@ def diarize_audio(audio: Path) -> list[SpeakerTurn]:
 
 def transcribe_audio(
     audio: Path, language: str = DEFAULT_ASR_LANGUAGE
-) -> list[TextSegment]:
+) -> list[TimedTextToken]:
     try:
         from mlx_audio.stt import load
 
@@ -49,13 +49,17 @@ def transcribe_audio(
             )
 
         result = model.generate(str(audio), language=language)
-        return [
-            TextSegment(
-                start=float(sentence.start),
-                end=float(sentence.end),
-                text=str(sentence.text),
-            )
-            for sentence in result.sentences
-        ]
+        return sorted(
+            (
+                TimedTextToken(
+                    start=float(token.start),
+                    end=float(token.end),
+                    text=str(token.text),
+                )
+                for sentence in result.sentences
+                for token in sentence.tokens
+            ),
+            key=lambda token: token.start,
+        )
     except Exception as exc:
         raise ModelError(f"Nemotron transcription failed ({ASR_MODEL}): {exc}") from exc

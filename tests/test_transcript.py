@@ -2,50 +2,70 @@ from pathlib import Path
 
 from diarize_transcribe.transcript import (
     SpeakerTurn,
-    TextSegment,
+    TimedTextToken,
     align_text_to_turns,
     render_lines,
     write_transcript,
 )
 
 
-def test_assigns_text_to_turn_with_greatest_overlap_and_orders_text() -> None:
+def test_assigns_tokens_across_speaker_boundaries_and_orders_text() -> None:
     turns = [SpeakerTurn(0, 2, "speaker_0"), SpeakerTurn(2, 4, "speaker_1")]
-    segments = [
-        TextSegment(2.2, 2.8, "second."),
-        TextSegment(1.2, 2.4, "first."),
+    tokens = [
+        TimedTextToken(2.2, 2.8, " second."),
+        TimedTextToken(1.6, 1.9, " first"),
+        TimedTextToken(1.2, 1.6, "The"),
     ]
 
-    assert align_text_to_turns(turns, segments) == [
-        (turns[0], "first."),
+    assert align_text_to_turns(turns, tokens) == [
+        (turns[0], "The first"),
         (turns[1], "second."),
     ]
 
 
-def test_equal_overlap_uses_segment_midpoint_turn() -> None:
+def test_equal_overlap_uses_token_midpoint_turn() -> None:
     turns = [SpeakerTurn(0, 2, "speaker_0"), SpeakerTurn(2, 4, "speaker_1")]
-    segments = [TextSegment(1, 3, "boundary")]
+    tokens = [TimedTextToken(1, 3, "boundary")]
 
-    assert align_text_to_turns(turns, segments) == [(turns[1], "boundary")]
+    assert align_text_to_turns(turns, tokens) == [(turns[1], "boundary")]
 
 
-def test_omits_unassigned_empty_and_zero_duration_segments() -> None:
-    turns = [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(2, 3, "speaker_1")]
-    segments = [
-        TextSegment(1, 2, "in the gap"),
-        TextSegment(0.2, 0.7, "  "),
-        TextSegment(0.2, 0.2, "instant"),
+def test_preserves_token_spacing_and_punctuation_within_turn() -> None:
+    turns = [SpeakerTurn(0, 2, "speaker_0")]
+    tokens = [
+        TimedTextToken(0.2, 0.4, " Hello"),
+        TimedTextToken(0.4, 0.6, ","),
+        TimedTextToken(0.6, 0.8, " world"),
+        TimedTextToken(0.8, 1.0, "!  "),
     ]
 
-    assert align_text_to_turns(turns, segments) == []
-    assert render_lines(turns, segments) == []
+    assert align_text_to_turns(turns, tokens) == [(turns[0], "Hello, world!")]
+
+
+def test_omits_unassigned_empty_and_zero_duration_tokens() -> None:
+    turns = [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(2, 3, "speaker_1")]
+    tokens = [
+        TimedTextToken(1, 2, "in the gap"),
+        TimedTextToken(0.2, 0.7, "  "),
+        TimedTextToken(0.2, 0.2, "instant"),
+    ]
+
+    assert align_text_to_turns(turns, tokens) == []
+    assert render_lines(turns, tokens) == []
 
 
 def test_overlapping_turns_receive_separate_lines_by_best_overlap() -> None:
     turns = [SpeakerTurn(0, 2, "speaker_0"), SpeakerTurn(1, 3, "speaker_1")]
-    segments = [TextSegment(0.2, 0.9, "one"), TextSegment(2.1, 2.8, "two")]
+    tokens = [
+        TimedTextToken(0.5, 1.8, "one"),
+        TimedTextToken(2.1, 2.8, "two"),
+    ]
 
-    assert render_lines(turns, segments) == [
+    assert align_text_to_turns(turns, tokens) == [
+        (turns[0], "one"),
+        (turns[1], "two"),
+    ]
+    assert render_lines(turns, tokens) == [
         "[0.000:2.000] speaker-0 -- one",
         "[1.000:3.000] speaker-1 -- two",
     ]
@@ -58,14 +78,14 @@ def test_render_lines_formats_numeric_ids_and_repeated_ids_consistently() -> Non
         SpeakerTurn(2, 3, "1"),
         SpeakerTurn(3, 4, "2"),
     ]
-    segments = [
-        TextSegment(0.2, 0.7, "First."),
-        TextSegment(1.2, 1.8, "Again."),
-        TextSegment(2.2, 2.8, "Second speaker."),
-        TextSegment(3.2, 3.8, "Third speaker."),
+    tokens = [
+        TimedTextToken(0.2, 0.7, "First."),
+        TimedTextToken(1.2, 1.8, "Again."),
+        TimedTextToken(2.2, 2.8, "Second speaker."),
+        TimedTextToken(3.2, 3.8, "Third speaker."),
     ]
 
-    assert render_lines(turns, segments) == [
+    assert render_lines(turns, tokens) == [
         "[0.125:0.800] speaker-0 -- First.",
         "[1.000:2.000] speaker-0 -- Again.",
         "[2.000:3.000] speaker-1 -- Second speaker.",
@@ -79,13 +99,13 @@ def test_render_lines_normalizes_underscore_ids_and_preserves_other_labels() -> 
         SpeakerTurn(1, 2, "speaker-1"),
         SpeakerTurn(2, 3, "guest"),
     ]
-    segments = [
-        TextSegment(0.1, 0.9, "One."),
-        TextSegment(1.1, 1.9, "Two."),
-        TextSegment(2.1, 2.9, "Guest."),
+    tokens = [
+        TimedTextToken(0.1, 0.9, "One."),
+        TimedTextToken(1.1, 1.9, "Two."),
+        TimedTextToken(2.1, 2.9, "Guest."),
     ]
 
-    assert render_lines(turns, segments) == [
+    assert render_lines(turns, tokens) == [
         "[0.000:1.000] speaker-0 -- One.",
         "[1.000:2.000] speaker-1 -- Two.",
         "[2.000:3.000] guest -- Guest.",
