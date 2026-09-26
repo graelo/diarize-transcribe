@@ -4,6 +4,7 @@ from diarize_transcribe.transcript import (
     SpeakerTurn,
     TimedTextToken,
     align_text_to_turns,
+    coalesce_speaker_turns,
     render_lines,
     write_transcript,
 )
@@ -40,6 +41,67 @@ def test_preserves_token_spacing_and_punctuation_within_turn() -> None:
     ]
 
     assert align_text_to_turns(turns, tokens) == [(turns[0], "Hello, world!")]
+
+
+def test_coalesces_short_same_speaker_gaps_before_attribution() -> None:
+    turns = [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(2, 3, "speaker_0")]
+    tokens = [
+        TimedTextToken(0.2, 0.8, "First"),
+        TimedTextToken(1.2, 1.8, " between"),
+        TimedTextToken(2.2, 2.8, " second"),
+    ]
+
+    assert render_lines(turns, tokens, speaker_gap_seconds=2.0) == [
+        "[0.000:3.000] speaker-0 -- First between second"
+    ]
+
+
+def test_coalesce_speaker_turns_respects_gap_boundaries_and_overlaps() -> None:
+    assert coalesce_speaker_turns(
+        [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(5.999, 7, "speaker_0")],
+        speaker_gap_seconds=5.0,
+    ) == [SpeakerTurn(0, 7, "speaker_0")]
+    assert coalesce_speaker_turns(
+        [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(6, 7, "speaker_0")],
+        speaker_gap_seconds=5.0,
+    ) == [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(6, 7, "speaker_0")]
+    assert coalesce_speaker_turns(
+        [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(7, 8, "speaker_0")],
+        speaker_gap_seconds=5.0,
+    ) == [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(7, 8, "speaker_0")]
+    assert coalesce_speaker_turns(
+        [SpeakerTurn(0, 2, "speaker_0"), SpeakerTurn(1, 3, "speaker_0")],
+        speaker_gap_seconds=0.0,
+    ) == [SpeakerTurn(0, 3, "speaker_0")]
+    assert coalesce_speaker_turns(
+        [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(1, 2, "speaker_0")],
+        speaker_gap_seconds=0.0,
+    ) == [SpeakerTurn(0, 1, "speaker_0"), SpeakerTurn(1, 2, "speaker_0")]
+    equal_start_turns = [
+        SpeakerTurn(0, 1, "speaker_0"),
+        SpeakerTurn(0, 10, "speaker_1"),
+        SpeakerTurn(0, 2, "speaker_0"),
+    ]
+    assert coalesce_speaker_turns(equal_start_turns, speaker_gap_seconds=5.0) == (
+        equal_start_turns
+    )
+
+
+def test_intervening_speaker_prevents_coalescing_even_without_text() -> None:
+    turns = [
+        SpeakerTurn(0, 1, "speaker_0"),
+        SpeakerTurn(1.1, 1.2, "speaker_1"),
+        SpeakerTurn(1.3, 2, "speaker_0"),
+    ]
+    tokens = [
+        TimedTextToken(0.2, 0.8, "First"),
+        TimedTextToken(1.4, 1.8, "Second"),
+    ]
+
+    assert render_lines(turns, tokens, speaker_gap_seconds=5.0) == [
+        "[0.000:1.000] speaker-0 -- First",
+        "[1.300:2.000] speaker-0 -- Second",
+    ]
 
 
 def test_assigns_uncovered_tokens_to_nearest_turns() -> None:
@@ -101,7 +163,7 @@ def test_render_lines_formats_numeric_ids_and_repeated_ids_consistently() -> Non
         TimedTextToken(3.2, 3.8, "Third speaker."),
     ]
 
-    assert render_lines(turns, tokens) == [
+    assert render_lines(turns, tokens, speaker_gap_seconds=0.0) == [
         "[0.125:0.800] speaker-0 -- First.",
         "[1.000:2.000] speaker-0 -- Again.",
         "[2.000:3.000] speaker-1 -- Second speaker.",

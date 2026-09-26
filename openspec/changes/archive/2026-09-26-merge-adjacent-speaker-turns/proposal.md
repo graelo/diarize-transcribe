@@ -9,7 +9,7 @@ Diarization emits multiple activity segments for one speaker around brief pauses
 - Add a `--speaker-gap-seconds` CLI option, defaulting to `5.0`, to control when consecutive same-speaker diarization segments are combined.
 - Coalesce consecutive segments for the same speaker only when their silence gap is strictly below the configured threshold, retaining the first start timestamp and final end timestamp.
 - Keep segments separate when another speaker intervenes or their gap is at least the configured threshold.
-- Reject negative speaker-gap thresholds before model inference.
+- Reject non-finite or negative speaker-gap thresholds before model inference.
 - Update transcript documentation and tests for coalesced speaker-turn output.
 
 ## Capabilities

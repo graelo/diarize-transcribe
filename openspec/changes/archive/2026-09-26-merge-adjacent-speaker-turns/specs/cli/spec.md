@@ -4,7 +4,7 @@
 
 ### Requirement: Command-line interface
 
-The package SHALL provide a command-line application installed as the `diarize-transcribe` executable, with `--help` and `--version` options, required audio-input and transcript-output file parameters, an optional `--language` option that accepts a prompt key supported by the ASR model and defaults to `auto`, and an optional `--speaker-gap-seconds` option that accepts a non-negative duration and defaults to `5.0`. The former `--chunk-seconds` option and `diarize` executable SHALL NOT be installed.
+The package SHALL provide a command-line application installed as the `diarize-transcribe` executable, with `--help` and `--version` options, required audio-input and transcript-output file parameters, an optional `--language` option that accepts a prompt key supported by the ASR model and defaults to `auto`, and an optional `--speaker-gap-seconds` option that accepts a finite non-negative duration and defaults to `5.0`. The former `--chunk-seconds` option and `diarize` executable SHALL NOT be installed.
 
 #### Scenario: Show help and version
 - **WHEN** a user invokes `diarize-transcribe --help` or `diarize-transcribe --version`
@@ -12,14 +12,14 @@ The package SHALL provide a command-line application installed as the `diarize-t
 
 #### Scenario: Accept an existing input file and output path
 - **WHEN** a user invokes `diarize-transcribe` with an existing audio file as input and a transcript path as output
-- **THEN** the command accepts the parameters and begins transcription using automatic language detection and a 5.0-second speaker-gap threshold unless a supported `--language` prompt key or non-negative `--speaker-gap-seconds` value is supplied
+- **THEN** the command accepts the parameters and begins transcription using automatic language detection and a 5.0-second speaker-gap threshold unless a supported `--language` prompt key or finite non-negative `--speaker-gap-seconds` value is supplied
 
 #### Scenario: Configure the speaker-gap threshold
 - **WHEN** a user supplies `--speaker-gap-seconds` with a non-negative duration
 - **THEN** the command uses that exact duration to determine whether adjacent same-speaker diarization turns are coalesced
 
-#### Scenario: Reject a negative speaker-gap threshold
-- **WHEN** a user supplies `--speaker-gap-seconds` with a negative duration
+#### Scenario: Reject an invalid speaker-gap threshold
+- **WHEN** a user supplies `--speaker-gap-seconds` with a non-finite or negative duration
 - **THEN** the command reports a parameter error and does not begin model inference
 
 #### Scenario: Reject a missing input file

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from pathlib import Path
 
 
@@ -18,6 +19,40 @@ class TimedTextToken:
     start: float
     end: float
     text: str
+
+
+DEFAULT_SPEAKER_GAP_SECONDS = 5.0
+
+
+def validate_speaker_gap_seconds(speaker_gap_seconds: float) -> float:
+    """Return a finite non-negative speaker-gap threshold."""
+    if not math.isfinite(speaker_gap_seconds) or speaker_gap_seconds < 0:
+        raise ValueError("speaker_gap_seconds must be finite and non-negative")
+    return speaker_gap_seconds
+
+
+def coalesce_speaker_turns(
+    turns: list[SpeakerTurn], speaker_gap_seconds: float
+) -> list[SpeakerTurn]:
+    """Merge chronological same-speaker turns separated by a short gap."""
+    validate_speaker_gap_seconds(speaker_gap_seconds)
+
+    coalesced: list[SpeakerTurn] = []
+    for turn in sorted(turns, key=lambda turn: turn.start):
+        if (
+            coalesced
+            and coalesced[-1].speaker == turn.speaker
+            and turn.start - coalesced[-1].end < speaker_gap_seconds
+        ):
+            previous = coalesced[-1]
+            coalesced[-1] = SpeakerTurn(
+                start=previous.start,
+                end=max(previous.end, turn.end),
+                speaker=previous.speaker,
+            )
+        else:
+            coalesced.append(turn)
+    return coalesced
 
 
 def align_text_to_turns(
@@ -79,12 +114,15 @@ def _format_speaker_label(speaker: str) -> str:
 
 
 def render_lines(
-    turns: list[SpeakerTurn], tokens: list[TimedTextToken]
+    turns: list[SpeakerTurn],
+    tokens: list[TimedTextToken],
+    speaker_gap_seconds: float = DEFAULT_SPEAKER_GAP_SECONDS,
 ) -> list[str]:
-    """Format assigned text as one line per speaker turn."""
+    """Format assigned text as one line per coalesced speaker turn."""
+    coalesced_turns = coalesce_speaker_turns(turns, speaker_gap_seconds)
     return [
         f"[{turn.start:.3f}:{turn.end:.3f}] {_format_speaker_label(turn.speaker)} -- {text}"
-        for turn, text in align_text_to_turns(turns, tokens)
+        for turn, text in align_text_to_turns(coalesced_turns, tokens)
     ]
 
 

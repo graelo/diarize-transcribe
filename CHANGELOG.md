@@ -10,12 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `--language` option for selecting a supported ASR language prompt, defaulting to automatic language detection.
+- `--speaker-gap-seconds` option for selecting the same-speaker coalescing threshold, defaulting to five seconds.
 
 ### Changed
 
 - Replace Parakeet with `mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit` for timestamped transcription.
 - Use Nemotron ASR's native streaming path for long recordings.
 - Attribute timestamped ASR tokens independently to speaker turns, retaining valid tokens in diarization coverage gaps via nearest-turn fallback.
+- Coalesce consecutive same-speaker diarization segments separated by less than five seconds into one transcript turn by default.
 
 ### Removed
 

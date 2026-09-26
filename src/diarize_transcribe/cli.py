@@ -11,7 +11,11 @@ import typer
 from diarize_transcribe import __version__
 from diarize_transcribe.models import DEFAULT_ASR_LANGUAGE
 from diarize_transcribe.pipeline import ModelError, run_transcription
-from diarize_transcribe.transcript import write_transcript
+from diarize_transcribe.transcript import (
+    DEFAULT_SPEAKER_GAP_SECONDS,
+    validate_speaker_gap_seconds,
+    write_transcript,
+)
 
 app = typer.Typer(
     name="diarize-transcribe",
@@ -30,6 +34,13 @@ def _version_callback(value: bool) -> bool:
 
 def _supported_platform() -> bool:
     return platform.system() == "Darwin" and platform.machine() in {"arm64", "aarch64"}
+
+
+def _speaker_gap_callback(value: float) -> float:
+    try:
+        return validate_speaker_gap_seconds(value)
+    except ValueError as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
 
 @app.command()
@@ -56,6 +67,15 @@ def run(
             show_default=True,
         ),
     ] = DEFAULT_ASR_LANGUAGE,
+    speaker_gap_seconds: Annotated[
+        float,
+        typer.Option(
+            "--speaker-gap-seconds",
+            callback=_speaker_gap_callback,
+            help="Merge same-speaker turns separated by less than this many seconds.",
+            show_default=True,
+        ),
+    ] = DEFAULT_SPEAKER_GAP_SECONDS,
     version: Annotated[
         bool,
         typer.Option(
@@ -84,7 +104,9 @@ def run(
         raise typer.BadParameter("the output parent directory must already exist")
 
     try:
-        lines = run_transcription(audio, language=language)
+        lines = run_transcription(
+            audio, language=language, speaker_gap_seconds=speaker_gap_seconds
+        )
         write_transcript(output, lines)
     except ModelError as exc:
         typer.echo(f"Error: {exc}", err=True)

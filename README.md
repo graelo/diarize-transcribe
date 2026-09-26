@@ -24,6 +24,12 @@ Nemotron 3.5 ASR uses its native streaming path for long recordings and automati
 uv run diarize-transcribe recording.wav --output transcript.txt --language <prompt-key>
 ```
 
+Consecutive diarization segments for the same speaker are combined when their silence gap is less than five seconds. To use another threshold, pass `--speaker-gap-seconds`; a value of `0` retains separate touching and silent-gap segments.
+
+```sh
+uv run diarize-transcribe recording.wav --output transcript.txt --speaker-gap-seconds 2.5
+```
+
 To run the tagged v0.2.0 release directly from GitHub with `uvx`, without syncing the project environment:
 
 ```sh
@@ -32,14 +38,14 @@ uvx --from 'git+https://github.com/graelo/diarize-transcribe.git@v0.2.0' diarize
 
 Use `uv run diarize-transcribe --help` for options or `uv run diarize-transcribe --version` to print the package version. The CLI loads `mlx-community/Nemotron-3-Diarization` and `mlx-community/nemotron-3.5-asr-streaming-0.6b-8bit` on the first transcription run. It does not silently substitute another model.
 
-Output is UTF-8 text, one line per speaker turn with assigned recognized text, for example:
+Output is UTF-8 text, one line per coalesced speaker turn with assigned recognized text, for example:
 
 ```text
 [0.000:1.420] speaker-0 -- Hello there.
 [1.420:2.610] speaker-1 -- Hi.
 ```
 
-Times are seconds from the beginning of the recording, rounded to milliseconds. Each timestamped Nemotron ASR token is assigned to the diarization turn with the greatest temporal overlap; equal overlaps prefer the turn containing the token midpoint. A token outside diarization coverage is assigned to its nearest turn so recognized text is retained. This allows text crossing a speaker boundary to be split between turns, but attribution can remain approximate at speaker changes and during overlapping speech.
+Times are seconds from the beginning of the recording, rounded to milliseconds. Consecutive raw diarization segments for one speaker are coalesced only when no other speaker occurs between them and their gap is shorter than `--speaker-gap-seconds` (five seconds by default). Each timestamped Nemotron ASR token is assigned to the coalesced diarization turn with the greatest temporal overlap; equal overlaps prefer the turn containing the token midpoint. A token outside diarization coverage is assigned to its nearest turn so recognized text is retained. This allows text crossing a speaker boundary to be split between turns, but attribution can remain approximate at speaker changes and during overlapping speech.
 
 ## Development
 

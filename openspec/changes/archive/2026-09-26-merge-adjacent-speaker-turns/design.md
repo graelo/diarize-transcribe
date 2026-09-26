@@ -26,9 +26,9 @@ Prepare chronological raw diarization turns by grouping only adjacent turns with
 
 This preserves a different-speaker boundary even if it would later be omitted for lack of text, and lets all attributed tokens in a merged contribution appear under one timestamp range. Coalescing after rendering would lack the raw sequence needed to preserve such boundaries; coalescing only visible lines could incorrectly join a speaker across an unrecognized intervening speaker turn.
 
-### Expose one non-negative CLI duration
+### Expose one finite non-negative CLI duration
 
-Add `--speaker-gap-seconds` as a float option with a default of `5.0`, validate non-negativity before model loading, and pass it from the CLI through the pipeline to transcript preparation. A value of zero permits coalescing only where turns overlap; a gap equal to the threshold remains separate because the condition is strictly less than.
+Add `--speaker-gap-seconds` as a float option with a default of `5.0`, validate finiteness and non-negativity before model loading, and pass it from the CLI through the pipeline to transcript preparation. A value of zero permits coalescing only where turns overlap; a gap equal to the threshold remains separate because the condition is strictly less than.
 
 A configuration file or model-level parameter would make a simple per-invocation output preference less discoverable and is not needed for this CLI.
 

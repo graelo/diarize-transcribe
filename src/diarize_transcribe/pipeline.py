@@ -10,15 +10,22 @@ from diarize_transcribe.models import (
     diarize_audio,
     transcribe_audio,
 )
-from diarize_transcribe.transcript import render_lines
+from diarize_transcribe.transcript import (
+    DEFAULT_SPEAKER_GAP_SECONDS,
+    render_lines,
+    validate_speaker_gap_seconds,
+)
 
 __all__ = ["ModelError", "run_transcription"]
 
 
 def run_transcription(
-    audio: Path, language: str = DEFAULT_ASR_LANGUAGE
+    audio: Path,
+    language: str = DEFAULT_ASR_LANGUAGE,
+    speaker_gap_seconds: float = DEFAULT_SPEAKER_GAP_SECONDS,
 ) -> list[str]:
     """Run the fixed model pair and return formatted speaker-turn lines."""
+    validate_speaker_gap_seconds(speaker_gap_seconds)
     turns = diarize_audio(audio)
     segments = transcribe_audio(audio, language=language)
-    return render_lines(turns, segments)
+    return render_lines(turns, segments, speaker_gap_seconds)
